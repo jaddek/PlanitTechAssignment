@@ -2,6 +2,8 @@
 bin/
 obj/
 
+coverage-report/
+
 # User-specific files
 *.user
 *.suo

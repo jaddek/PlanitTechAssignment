@@ -8,6 +8,7 @@ help:
 	@echo "  install-playwright      - Install Playwright browsers (run once)"
 	@echo "  restore                 - Restore .NET dependencies"
 	@echo "  build                   - Build the project"
+	@echo "  report                   - Build the report"
 	@echo "  test                    - Run all tests, headless, no build, output TRX logger"
 	@echo "  test-local              - Run all tests, headless off, no build, output TRX logger"
 	@echo "  test-filter             - Run filtered tests (use FILTER variable), no build, TRX logger"
@@ -25,7 +26,13 @@ build:
 	$(DOTNET) build
 
 test:
-	$(DOTNET) test $(TEST_PROJECT) --no-build --logger trx; 
+	$(DOTNET) test $(TEST_PROJECT) --no-build --logger trx;LogFileName=TestResults/test-results.trx; 
+
+report:
+	$(DOTNET) tool run reportgenerator -- \
+  		"-reports:./TechnicalAssessmentTests/TestResults/*.trx" \
+  		-targetdir:coverage-report \
+  		-reporttypes:Html
 
 test-local:
 	$(DOTNET) test $(TEST_PROJECT) --settings ./TechnicalAssessmentTests/local.runsettings --no-build --logger trx; 
