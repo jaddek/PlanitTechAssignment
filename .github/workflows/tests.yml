@@ -34,6 +34,9 @@ jobs:
         with:
           dotnet-version: '9.0.x'
 
+      - name: Setup report generation tool
+        run: dotnet tool install -g dotnet-reportgenerator-globaltool
+
       - name: Restore dependencies
         run: dotnet restore
 
@@ -48,7 +51,6 @@ jobs:
 
       - name: Generate HTML Report
         run: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool
           make report
           
       - name: Upload HTML Report Artifact
