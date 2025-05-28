@@ -31,7 +31,7 @@ test:
 report:
 	$(DOTNET) tool run reportgenerator -- \
   		"-reports:./TechnicalAssessmentTests/TestResults/*.trx" \
-  		-targetdir:coverage-report \
+  		-targetdir:test-report \
   		-reporttypes:Html
 
 test-local:
