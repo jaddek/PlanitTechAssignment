@@ -51,7 +51,7 @@ jobs:
       - name: Run Tests
         run: |
           make test
-          ls -la ./traces
+          ls -la $PLAYWRIGHT_TRACE_PATH
 
       - name: Upload Test Results Artifact
         uses: actions/upload-artifact@v4
@@ -64,7 +64,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-traces
-          path: $PLAYWRIGHT_TRACE_PATH/trace-*.zip
+          path: $PLAYWRIGHT_TRACE_PATH
 
 #  reporting:
 #    runs-on: ubuntu-latest
