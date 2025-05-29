@@ -14,8 +14,8 @@ public abstract class AbstractPage(IPage page)
     {
         return new UriBuilder
         {
-            Scheme = TestConfig.Scheme,
-            Host = TestConfig.Host,
+            Scheme = AppConfig.Scheme,
+            Host = AppConfig.Host,
             Fragment = Fragment,
             Path = Path
         }.ToString();

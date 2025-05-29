@@ -9,13 +9,15 @@ on:
     branches:
       - main
 
+env:
+  DOTNET_CLI_TELEMETRY_OPTOUT: "1"
+  DOTNET_NOLOGO: "1"
+  DEBUG: ${{ vars.DEBUG }}
+  PLAYWRIGHT_TRACE_PATH: ${{vars.PLAYWRIGHT_TRACE_PATH}}
+
 jobs:
   tests:
     runs-on: ubuntu-latest
-    env:
-      DOTNET_CLI_TELEMETRY_OPTOUT: "1"
-      DOTNET_NOLOGO: "1"
-      DEBUG: ${{ vars.DEBUG }}
     steps:
       - name: Install PowerShell
         run: |
@@ -58,7 +60,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-traces
-          path: '**/trace-*.zip'
+          path: '${{PLAYWRIGHT_TRACE_PATH}}/trace-*.zip'
 
   reporting:
     runs-on: ubuntu-latest
@@ -79,10 +81,10 @@ jobs:
           dotnet-version: '9.0.x'
 
       - name: Install reportgenerator tool
-        run: |  
+        run: |
           dotnet tool install -g dotnet-reportgenerator-globaltool
           dotnet tool restore
-          
+
       - name: Generate HTML Report
         run: |
           export PATH="$PATH:$HOME/.dotnet/tools"
@@ -93,3 +95,9 @@ jobs:
         with:
           name: test-report
           path: test-report/
+
+      - name: Upload Playwright Traces
+        uses: actions/upload-artifact@v4
+        with:
+          name: playwright-traces
+          path: ${{PLAYWRIGHT_TRACE_PATH}}

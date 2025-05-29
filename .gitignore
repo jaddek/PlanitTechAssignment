@@ -2,7 +2,7 @@
 bin/
 obj/
 
-coverage-report/
+test-report/
 
 # User-specific files
 *.user

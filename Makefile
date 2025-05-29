@@ -26,20 +26,20 @@ build:
 	$(DOTNET) build
 
 test:
-	$(DOTNET) test $(TEST_PROJECT) --no-build --logger trx;LogFileName=TestResults/test-results.trx; 
+	$(DOTNET) test $(TEST_PROJECT) --no-build --logger trx;LogFileName=TestResults/test-results.trx;
 
 report:
 	$(DOTNET) tool run reportgenerator -- \
-  		"-reports:./TechnicalAssessmentTests/TestResults/*.trx" \
+  		"-reports:./TechnicalAssessmentTests/TestResults/*.trx,./TechnicalAssessmentTests/TestResults/**/*.xml," \
   		-targetdir:test-report \
-  		-reporttypes:Html
+  		-reporttypes:"Html;MarkdownSummary"
 
 test-local:
 	$(DOTNET) test $(TEST_PROJECT) --settings ./TechnicalAssessmentTests/local.runsettings --no-build --logger trx; 
 
 
 test-filter:
-	$(DOTNET) test $(TEST_PROJECT) --no-build --logger trx --filter "$(FILTER)"
+	$(DOTNET) test $(TEST_PROJECT) --no-build --logger "trx;LogFileName=TestResults/test-results.trx" --filter "$(FILTER)"
 
 test-debug:
 	$(DOTNET) test $(TEST_PROJECT) --no-build --no-restore --logger trx -- --diagnostics $(DEBUG_ARGS)
