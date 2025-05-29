@@ -59,12 +59,16 @@ jobs:
           name: test-results
           path: TechnicalAssessmentTests/TestResults/
 
+      - name: Any traces?
+        run: |
+          ls -la $PLAYWRIGHT_TRACE_PATH
+
       - name: Upload Playwright Traces
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: playwright-traces
-          path: $PLAYWRIGHT_TRACE_PATH
+          path: .${{ vars.PLAYWRIGHT_TRACE_PATH }}/*.zip
 
 #  reporting:
 #    runs-on: ubuntu-latest
