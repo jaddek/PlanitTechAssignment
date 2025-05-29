@@ -3,6 +3,7 @@ bin/
 obj/
 
 test-report/
+traces/
 
 # User-specific files
 *.user
