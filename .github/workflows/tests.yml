@@ -19,6 +19,11 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set PLAYWRIGHT_TRACE_PATH for all future steps
+        run: |
+          echo "PLAYWRIGHT_TRACE_PATH=${{ github.workspace }}/artifacts/playwright-traces" >> $GITHUB_ENV
+          echo $PLAYWRIGHT_TRACE_PATH
+        
       - name: Install PowerShell
         run: |
           sudo apt-get update
@@ -57,17 +62,20 @@ jobs:
       - name: Upload Playwright Traces
         if: always()
         uses: actions/upload-artifact@v4
-        env:
-          PLAYWRIGHT_TRACE_PATH_COMBINED: ${{ github.workspace }}${{ env.PLAYWRIGHT_TRACE_PATH }}
         with:
           name: playwright-traces
-          path: $PLAYWRIGHT_TRACE_PATH_COMBINED/trace-*.zip
+          path: PLAYWRIGHT_TRACE_PATH/trace-*.zip
 
   reporting:
     runs-on: ubuntu-latest
     needs: tests
 
     steps:
+      - name: Set PLAYWRIGHT_TRACE_PATH for all future steps
+        run: | 
+          echo "PLAYWRIGHT_TRACE_PATH=${{ github.workspace }}/artifacts/playwright-traces" >> $GITHUB_ENV
+          echo $PLAYWRIGHT_TRACE_PATH
+        
       - name: Checkout repository
         uses: actions/checkout@v4
 
@@ -79,11 +87,9 @@ jobs:
 
       - name: Download Playwright Traces
         uses: actions/download-artifact@v4
-        env:
-          PLAYWRIGHT_TRACE_PATH_COMBINED: ${{ github.workspace }}${{ env.PLAYWRIGHT_TRACE_PATH }}
         with:
           name: playwright-traces
-          path: $PLAYWRIGHT_TRACE_PATH_COMBINED
+          path: $PLAYWRIGHT_TRACE_PATH
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
