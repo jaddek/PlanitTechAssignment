@@ -22,9 +22,6 @@ jobs:
       - name: Set PLAYWRIGHT_TRACE_PATH for all future steps
         run: echo "PLAYWRIGHT_TRACE_PATH=${{ github.workspace }}${{ vars.PLAYWRIGHT_TRACE_PATH }}" >> $GITHUB_ENV
 
-      - name: Print PLAYWRIGHT_TRACE_PATH
-        run: echo $PLAYWRIGHT_TRACE_PATH
-
       - name: Install PowerShell
         run: |
           sudo apt-get update
@@ -53,8 +50,8 @@ jobs:
 
       - name: Run Tests
         run: |
-          echo $PLAYWRIGHT_TRACE_PATH
           make test
+          ls -la ./traces
 
       - name: Upload Test Results Artifact
         uses: actions/upload-artifact@v4
@@ -67,53 +64,50 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: playwright-traces
-          path: PLAYWRIGHT_TRACE_PATH/trace-*.zip
+          path: $PLAYWRIGHT_TRACE_PATH/trace-*.zip
 
-  reporting:
-    runs-on: ubuntu-latest
-    needs: tests
-
-    steps:
-      - name: Set PLAYWRIGHT_TRACE_PATH for all future steps
-        run: echo "PLAYWRIGHT_TRACE_PATH=${{ github.workspace }}${{ vars.PLAYWRIGHT_TRACE_PATH }}" >> $GITHUB_ENV
-
-      - name: Print PLAYWRIGHT_TRACE_PATH
-        run: echo $PLAYWRIGHT_TRACE_PATH
-
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Download Test Results Artifact
-        uses: actions/download-artifact@v4
-        with:
-          name: test-results
-          path: TechnicalAssessmentTests/TestResults/
-
-      - name: Download Playwright Traces
-        uses: actions/download-artifact@v4
-        continue-on-error: true
-        with:
-          name: playwright-traces
-          path: $PLAYWRIGHT_TRACE_PATH
-
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
-        with:
-          dotnet-version: '9.0.x'
-
-      - name: Install ReportGenerator Tool
-        run: |
-          dotnet tool install -g dotnet-reportgenerator-globaltool
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          dotnet tool restore
-
-      - name: Generate HTML Report
-        run: |
-          export PATH="$PATH:$HOME/.dotnet/tools"
-          make report
-
-      - name: Upload HTML Report Artifact
-        uses: actions/upload-artifact@v4
-        with:
-          name: test-report
-          path: test-report/
+#  reporting:
+#    runs-on: ubuntu-latest
+#    needs: tests
+#
+#    steps:
+#      - name: Set PLAYWRIGHT_TRACE_PATH for all future steps
+#        run: echo "PLAYWRIGHT_TRACE_PATH=${{ github.workspace }}${{ vars.PLAYWRIGHT_TRACE_PATH }}" >> $GITHUB_ENV
+#
+#      - name: Checkout repository
+#        uses: actions/checkout@v4
+#
+#      - name: Download Test Results Artifact
+#        uses: actions/download-artifact@v4
+#        with:
+#          name: test-results
+#          path: TechnicalAssessmentTests/TestResults/
+#
+#      - name: Download Playwright Traces
+#        uses: actions/download-artifact@v4
+#        continue-on-error: true
+#        with:
+#          name: playwright-traces
+#          path: $PLAYWRIGHT_TRACE_PATH
+#
+#      - name: Setup .NET SDK
+#        uses: actions/setup-dotnet@v4
+#        with:
+#          dotnet-version: '9.0.x'
+#
+#      - name: Install ReportGenerator Tool
+#        run: |
+#          dotnet tool install -g dotnet-reportgenerator-globaltool
+#          export PATH="$PATH:$HOME/.dotnet/tools"
+#          dotnet tool restore
+#
+#      - name: Generate HTML Report
+#        run: |
+#          export PATH="$PATH:$HOME/.dotnet/tools"
+#          make report
+#
+#      - name: Upload HTML Report Artifact
+#        uses: actions/upload-artifact@v4
+#        with:
+#          name: test-report
+#          path: test-report/
