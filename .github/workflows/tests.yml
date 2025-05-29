@@ -21,7 +21,7 @@ jobs:
     steps:
       - name: Set PLAYWRIGHT_TRACE_PATH for all future steps
         run: |
-          echo "PLAYWRIGHT_TRACE_PATH=${{ github.workspace }}/artifacts/playwright-traces" >> $GITHUB_ENV
+          echo "PLAYWRIGHT_TRACE_PATH=${{ github.workspace }}${{ env.PLAYWRIGHT_TRACE_PATH }}" >> $GITHUB_ENV
           echo $PLAYWRIGHT_TRACE_PATH
         
       - name: Install PowerShell
@@ -73,7 +73,7 @@ jobs:
     steps:
       - name: Set PLAYWRIGHT_TRACE_PATH for all future steps
         run: | 
-          echo "PLAYWRIGHT_TRACE_PATH=${{ github.workspace }}/artifacts/playwright-traces" >> $GITHUB_ENV
+          echo "PLAYWRIGHT_TRACE_PATH=${{ github.workspace }}${{ env.PLAYWRIGHT_TRACE_PATH }}" >> $GITHUB_ENV
           echo $PLAYWRIGHT_TRACE_PATH
         
       - name: Checkout repository
