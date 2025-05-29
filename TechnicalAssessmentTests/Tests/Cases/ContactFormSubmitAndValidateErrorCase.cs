@@ -1,4 +1,5 @@
 ﻿using TechnicalAssessmentTests.Pages;
+using Xunit.Abstractions;
 
 namespace TechnicalAssessmentTests.Tests.Cases;
 
@@ -8,7 +9,7 @@ namespace TechnicalAssessmentTests.Tests.Cases;
 // 3. Verify error messages
 // 4. Populate mandatory fields
 // 5. Validate errors are gone
-public class ContactFormSubmitAndValidateErrorCase : AbstractCase
+public class ContactFormSubmitAndValidateErrorCase(ITestOutputHelper output) : AbstractCase(output)
 {
     [Theory]
     [InlineData("Forename", "email@email.com", "message")]
@@ -35,7 +36,7 @@ public class ContactFormSubmitAndValidateErrorCase : AbstractCase
         await Expect(form.Submit()).ToBeVisibleAsync();
 
         await form.Submit().ClickAsync();
-        
+
         await Expect(form.ForenameRequiredError()).ToBeVisibleAsync();
         await Expect(form.EmailRequiredError()).ToBeVisibleAsync();
         await Expect(form.MessageRequiredError()).ToBeVisibleAsync();
@@ -43,7 +44,7 @@ public class ContactFormSubmitAndValidateErrorCase : AbstractCase
         await form.Forename().FillAsync(forename);
         await form.Email().FillAsync(email);
         await form.Message().FillAsync(message);
-        
+
         await form.Submit().ClickAsync();
 
         await Expect(form.ForenameRequiredError()).ToBeHiddenAsync();

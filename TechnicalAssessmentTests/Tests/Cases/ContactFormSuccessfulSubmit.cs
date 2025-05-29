@@ -1,5 +1,6 @@
 ﻿using Microsoft.Playwright;
 using TechnicalAssessmentTests.Pages;
+using Xunit.Abstractions;
 
 namespace TechnicalAssessmentTests.Tests.Cases;
 
@@ -9,7 +10,7 @@ namespace TechnicalAssessmentTests.Tests.Cases;
 // 3. Click submit button
 // 4. Validate successful submission message
 // Note: Run this test 5 times to ensure 100% pass rate
-public class ContactFormSuccessfulSubmit : AbstractCase
+public class ContactFormSuccessfulSubmit(ITestOutputHelper output) : AbstractCase(output)
 {
     [Theory(DisplayName = "Submit contact form successfully with valid input")]
     [InlineData("forename 1", "email+1@test.com", "Message 1")]
@@ -48,7 +49,7 @@ public class ContactFormSuccessfulSubmit : AbstractCase
 
         /*
             Timeout should be set up to 18999ms
-         
+
             var rt = ( Math.floor(Math.random()*1001) * Math.floor(Math.random()*10) + 1000);
             if(rt % 2) {
                 rt += 9000;
