@@ -13,7 +13,6 @@ env:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
   DOTNET_NOLOGO: "1"
   DEBUG: ${{ vars.DEBUG }}
-  PLAYWRIGHT_TRACE_PATH: ${{ vars.PLAYWRIGHT_TRACE_PATH }}
 
 jobs:
   tests:
@@ -58,9 +57,11 @@ jobs:
       - name: Upload Playwright Traces
         if: always()
         uses: actions/upload-artifact@v4
+        env:
+          PLAYWRIGHT_TRACE_PATH_COMBINED: ${{ github.workspace }}${{ env.PLAYWRIGHT_TRACE_PATH }}
         with:
           name: playwright-traces
-          path: ${{ github.workspace }}${{ env.PLAYWRIGHT_TRACE_PATH }}/trace-*.zip
+          path: $PLAYWRIGHT_TRACE_PATH_COMBINED/trace-*.zip
 
   reporting:
     runs-on: ubuntu-latest
@@ -78,9 +79,11 @@ jobs:
 
       - name: Download Playwright Traces
         uses: actions/download-artifact@v4
+        env:
+          PLAYWRIGHT_TRACE_PATH_COMBINED: ${{ github.workspace }}${{ env.PLAYWRIGHT_TRACE_PATH }}
         with:
           name: playwright-traces
-          path: ${{ github.workspace }}${{ env.PLAYWRIGHT_TRACE_PATH }}
+          path: $PLAYWRIGHT_TRACE_PATH_COMBINED
 
       - name: Setup .NET SDK
         uses: actions/setup-dotnet@v4
