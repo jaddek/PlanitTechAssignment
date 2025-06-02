@@ -78,7 +78,7 @@ jobs:
       - name: Upload Test Results Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}
+          name: test-results-${{ matrix.group }}-${{ github.run_id }}-${{ github.run_attempt }}
           path: TechnicalAssessmentTests/TestResults/
 
       - name: Upload Playwright Traces
