@@ -4,23 +4,15 @@ pipeline {
     environment {
         DOTNET_CLI_TELEMETRY_OPTOUT = "1"
         DOTNET_NOLOGO = "1"
-        DEBUG = '' // Set as needed or pass as parameter
-        PLAYWRIGHT_TRACE_PATH = "${env.WORKSPACE}/playwright-traces"
+        DEBUG = credentials('DEBUG') // Заменить на actual Jenkins secret ID или переменную
+        PLAYWRIGHT_TRACE_PATH = "${WORKSPACE}${env.PLAYWRIGHT_TRACE_PATH ?: '/traces'}"
     }
 
-    options {
-        // Keep 10 builds and timeout after 1 hour, adjust as needed
-        buildDiscarder(logRotator(numToKeepStr: '10'))
-        timeout(time: 1, unit: 'HOURS')
+    parameters {
+        choice(name: 'GROUP', choices: ['ContactFormValidation', 'ContactFormSubmission', 'CartCheckout'], description: 'Select test group')
     }
 
     stages {
-        stage('Checkout') {
-            steps {
-                checkout scm
-            }
-        }
-
         stage('Install PowerShell') {
             steps {
                 sh '''
@@ -34,16 +26,20 @@ pipeline {
             }
         }
 
-        stage('Setup .NET SDK') {
+        stage('Checkout') {
             steps {
-                // Using official .NET SDK image or install SDK on agent if needed
-                sh 'dotnet --version' // Validate SDK presence
+                checkout scm
             }
         }
 
-        stage('Restore and Build') {
+        stage('Restore Dependencies') {
             steps {
                 sh 'dotnet restore'
+            }
+        }
+
+        stage('Build') {
+            steps {
                 sh 'dotnet build'
             }
         }
@@ -54,59 +50,28 @@ pipeline {
             }
         }
 
-        stage('Run Tests in Parallel') {
-            parallel {
-                stage('ContactFormValidation') {
-                    steps {
-                        sh '''
-                        mkdir -p ${PLAYWRIGHT_TRACE_PATH}/ContactFormValidation
-                        make test-group --Group=ContactFormValidation
-                        '''
-                        archiveArtifacts artifacts: 'TechnicalAssessmentTests/TestResults/**', fingerprint: true
-                    }
-                }
-                stage('ContactFormSubmission') {
-                    steps {
-                        sh '''
-                        mkdir -p ${PLAYWRIGHT_TRACE_PATH}/ContactFormSubmission
-                        make test-group --Group=ContactFormSubmission
-                        '''
-                        archiveArtifacts artifacts: 'TechnicalAssessmentTests/TestResults/**', fingerprint: true
-                    }
-                }
-                stage('CartCheckout') {
-                    steps {
-                        sh '''
-                        mkdir -p ${PLAYWRIGHT_TRACE_PATH}/CartCheckout
-                        make test-group --Group=CartCheckout
-                        '''
-                        archiveArtifacts artifacts: 'TechnicalAssessmentTests/TestResults/**', fingerprint: true
-                    }
-                }
+        stage('Run Tests') {
+            steps {
+                sh 'make test-group Group=${GROUP}'
             }
         }
 
-        stage('Generate Report') {
+        stage('Archive Test Results') {
             steps {
-                sh '''
-                dotnet tool install -g dotnet-reportgenerator-globaltool || true
-                export PATH="$PATH:$HOME/.dotnet/tools"
-                make report
-                '''
-                archiveArtifacts artifacts: 'test-report/**', fingerprint: true
+                archiveArtifacts artifacts: 'TechnicalAssessmentTests/TestResults/**/*', allowEmptyArchive: true
+            }
+        }
+
+        stage('Archive Playwright Traces') {
+            steps {
+                archiveArtifacts artifacts: "${PLAYWRIGHT_TRACE_PATH}/*.zip", allowEmptyArchive: true
             }
         }
     }
 
     post {
         always {
-            archiveArtifacts artifacts: "${PLAYWRIGHT_TRACE_PATH}/**/*.zip", fingerprint: true
-        }
-        success {
-            echo 'Tests and reporting completed successfully.'
-        }
-        failure {
-            echo 'Some tests failed. Please check the reports and traces.'
+            junit 'TechnicalAssessmentTests/TestResults/**/*.xml'
         }
     }
 }
