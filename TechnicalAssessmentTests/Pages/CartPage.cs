@@ -16,8 +16,6 @@ public sealed class CartPage(IPage page) : AbstractPage(page)
 
 public class CartPageAssertScenarioManager(CartPage page)
 {
-    private readonly CartPageAssertManager _assetManager = new(page);
-
     public async Task CartPageValidateDataAsync(
         Dictionary<string, Item> purchaseList
     )
@@ -70,8 +68,4 @@ public class CartPageAssertScenarioManager(CartPage page)
     
     private static decimal ParseCurrency(string input) =>
         decimal.Parse(input.Replace("$", "").Trim(), CultureInfo.InvariantCulture);
-}
-
-public sealed class CartPageAssertManager(CartPage page)
-{
 }

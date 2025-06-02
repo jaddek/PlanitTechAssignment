@@ -8,6 +8,8 @@ on:
   pull_request:
     branches:
       - main
+  schedule:
+    - cron: '0 0 * * *'
 
 env:
   DOTNET_CLI_TELEMETRY_OPTOUT: "1"
@@ -58,7 +60,7 @@ jobs:
       - name: Upload Test Results Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: test-results
+          name: test-results-${{ github.run_id }}
           path: TechnicalAssessmentTests/TestResults/
 
       - name: Any traces?
@@ -69,7 +71,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-traces
+          name: playwright-traces-${{ github.run_id }}
           path: .${{ vars.PLAYWRIGHT_TRACE_PATH }}/*.zip
 
   reporting:
