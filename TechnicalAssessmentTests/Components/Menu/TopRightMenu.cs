@@ -6,5 +6,5 @@ public class TopRightMenu(IPage page) : AbstractComponent
 {
     public override ILocator Node { get; } = page.Locator("ul").Last;
 
-    public CartTab CartTab { get; } = new(page);
+    public CartTab CartLink { get; } = new(page);
 }

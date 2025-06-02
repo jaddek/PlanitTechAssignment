@@ -4,12 +4,11 @@ namespace TechnicalAssessmentTests.Components.Collection;
 
 public sealed class CartItemsCollection(IPage page) : AbstractComponent
 {
-    private const string ItemSelector = ".cart-items";
+    private const string CollectionSelector = ".cart-items";
     private const string SingleItemSelector = ".cart-item";
-    public override ILocator Node { get; } = page.Locator(ItemSelector);
-    
-    public ILocator GetItems()
-    {
-        return Node.Locator(SingleItemSelector);
-    }
+    private const string TotalSelector = ".total";
+    public readonly ILocator Collection = page.Locator(CollectionSelector);
+    public readonly ILocator Total = page.Locator(TotalSelector);
+
+    public override ILocator Node { get; } = page.Locator(SingleItemSelector);
 }

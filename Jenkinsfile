@@ -1,135 +1,112 @@
 pipeline {
     agent any
-    
+
     environment {
         DOTNET_CLI_TELEMETRY_OPTOUT = "1"
         DOTNET_NOLOGO = "1"
-        DEBUG = "${params.DEBUG ?: '0'}"
-        PLAYWRIGHT_TRACE_PATH = "${WORKSPACE}${params.PLAYWRIGHT_TRACE_PATH ?: '/playwright-traces'}"
+        DEBUG = '' // Set as needed or pass as parameter
+        PLAYWRIGHT_TRACE_PATH = "${env.WORKSPACE}/playwright-traces"
     }
-    
-    parameters {
-        booleanParam(name: 'DEBUG', defaultValue: false)
-        string(name: 'PLAYWRIGHT_TRACE_PATH', defaultValue: '/playwright-traces')
+
+    options {
+        // Keep 10 builds and timeout after 1 hour, adjust as needed
+        buildDiscarder(logRotator(numToKeepStr: '10'))
+        timeout(time: 1, unit: 'HOURS')
     }
-    
+
     stages {
-        stage('Install PowerShell') {
-            steps {
-                sh '''
-                    sudo apt-get update
-                    sudo apt-get install -y wget apt-transport-https software-properties-common
-                    wget -q https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
-                    sudo dpkg -i packages-microsoft-prod.deb
-                    sudo apt-get update
-                    sudo apt-get install -y powershell
-                '''
-            }
-        }
-        
-        stage('Checkout repository') {
+        stage('Checkout') {
             steps {
                 checkout scm
             }
         }
-        
+
+        stage('Install PowerShell') {
+            steps {
+                sh '''
+                sudo apt-get update
+                sudo apt-get install -y wget apt-transport-https software-properties-common
+                wget -q https://packages.microsoft.com/config/ubuntu/22.04/packages-microsoft-prod.deb
+                sudo dpkg -i packages-microsoft-prod.deb
+                sudo apt-get update
+                sudo apt-get install -y powershell
+                '''
+            }
+        }
+
         stage('Setup .NET SDK') {
             steps {
-                sh '''
-                    wget https://dot.net/v1/dotnet-install.sh -O dotnet-install.sh
-                    chmod +x ./dotnet-install.sh
-                    ./dotnet-install.sh --version latest --channel 9.0
-                    export PATH="$PATH:$HOME/.dotnet"
-                '''
+                // Using official .NET SDK image or install SDK on agent if needed
+                sh 'dotnet --version' // Validate SDK presence
             }
         }
-        
-        stage('Restore dependencies') {
+
+        stage('Restore and Build') {
             steps {
-                sh '''
-                    export PATH="$PATH:$HOME/.dotnet"
-                    dotnet restore
-                '''
+                sh 'dotnet restore'
+                sh 'dotnet build'
             }
         }
-        
-        stage('Build') {
-            steps {
-                sh '''
-                    export PATH="$PATH:$HOME/.dotnet"
-                    dotnet build
-                '''
-            }
-        }
-        
+
         stage('Install Playwright Browsers') {
             steps {
-                sh '''
-                    export PATH="$PATH:$HOME/.dotnet"
-                    pwsh TechnicalAssessmentTests/bin/Debug/net9.0/playwright.ps1 install
-                '''
+                sh 'pwsh TechnicalAssessmentTests/bin/Debug/net9.0/playwright.ps1 install'
             }
         }
-        
-        stage('Run Tests') {
+
+        stage('Run Tests in Parallel') {
+            parallel {
+                stage('ContactFormValidation') {
+                    steps {
+                        sh '''
+                        mkdir -p ${PLAYWRIGHT_TRACE_PATH}/ContactFormValidation
+                        make test-group --Group=ContactFormValidation
+                        '''
+                        archiveArtifacts artifacts: 'TechnicalAssessmentTests/TestResults/**', fingerprint: true
+                    }
+                }
+                stage('ContactFormSubmission') {
+                    steps {
+                        sh '''
+                        mkdir -p ${PLAYWRIGHT_TRACE_PATH}/ContactFormSubmission
+                        make test-group --Group=ContactFormSubmission
+                        '''
+                        archiveArtifacts artifacts: 'TechnicalAssessmentTests/TestResults/**', fingerprint: true
+                    }
+                }
+                stage('CartCheckout') {
+                    steps {
+                        sh '''
+                        mkdir -p ${PLAYWRIGHT_TRACE_PATH}/CartCheckout
+                        make test-group --Group=CartCheckout
+                        '''
+                        archiveArtifacts artifacts: 'TechnicalAssessmentTests/TestResults/**', fingerprint: true
+                    }
+                }
+            }
+        }
+
+        stage('Generate Report') {
             steps {
                 sh '''
-                    export PATH="$PATH:$HOME/.dotnet"
-                    make test
+                dotnet tool install -g dotnet-reportgenerator-globaltool || true
+                export PATH="$PATH:$HOME/.dotnet/tools"
+                make report
                 '''
+                archiveArtifacts artifacts: 'test-report/**', fingerprint: true
             }
         }
-        
-        stage('Upload Test Results Artifact') {
-            steps {
-                archiveArtifacts artifacts: 'TechnicalAssessmentTests/TestResults/**', allowEmptyArchive: true
-            }
+    }
+
+    post {
+        always {
+            archiveArtifacts artifacts: "${PLAYWRIGHT_TRACE_PATH}/**/*.zip", fingerprint: true
         }
-        
-        stage('Any traces?') {
-            steps {
-                sh '''
-                    ls -la $PLAYWRIGHT_TRACE_PATH
-                '''
-            }
+        success {
+            echo 'Tests and reporting completed successfully.'
         }
-        
-        stage('Upload Playwright Traces') {
-            steps {
-                archiveArtifacts artifacts: ".${params.PLAYWRIGHT_TRACE_PATH}/*.zip", allowEmptyArchive: true
-            }
-        }
-        
-        stage('Download Test Results Artifact') {
-            steps {
-                sh 'echo "Test results already available in workspace"'
-            }
-        }
-        
-        stage('Install ReportGenerator Tool') {
-            steps {
-                sh '''
-                    export PATH="$PATH:$HOME/.dotnet"
-                    dotnet tool install -g dotnet-reportgenerator-globaltool
-                    export PATH="$PATH:$HOME/.dotnet/tools"
-                    dotnet tool restore
-                '''
-            }
-        }
-        
-        stage('Generate HTML Report') {
-            steps {
-                sh '''
-                    export PATH="$PATH:$HOME/.dotnet:$HOME/.dotnet/tools"
-                    make report
-                '''
-            }
-        }
-        
-        stage('Upload HTML Report Artifact') {
-            steps {
-                archiveArtifacts artifacts: 'test-report/**', allowEmptyArchive: true
-            }
+        failure {
+            echo 'Some tests failed. Please check the reports and traces.'
         }
     }
 }
