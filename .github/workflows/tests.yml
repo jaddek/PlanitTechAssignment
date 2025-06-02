@@ -60,7 +60,7 @@ jobs:
       - name: Upload Test Results Artifact
         uses: actions/upload-artifact@v4
         with:
-          name: test-results-${{ github.run_id }}-${{ github.run_attempt }}-${{ steps.timestamp.outputs.time }}
+          name: test-results-${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ steps.timestamp.outputs.time }}
           path: TechnicalAssessmentTests/TestResults/
 
       - name: Any traces?
@@ -71,7 +71,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: playwright-traces-${{ github.run_id }}-${{ github.run_attempt }}-${{ steps.timestamp.outputs.time }}
+          name: playwright-traces-${{ matrix.node }}-${{ github.run_id }}-${{ github.run_attempt }}-${{ steps.timestamp.outputs.time }}
           path: .${{ vars.PLAYWRIGHT_TRACE_PATH }}/*.zip
 
   reporting:
