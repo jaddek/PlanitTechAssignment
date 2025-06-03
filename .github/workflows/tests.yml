@@ -17,11 +17,46 @@ env:
   DEBUG: ${{ vars.DEBUG }}
 
 jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: nuget-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
+          restore-keys: |
+            nuget-${{ runner.os }}-
+
+      - name: Restore dependencies
+        run: dotnet restore
+
+      - name: Build solution
+        run: dotnet build --no-restore --configuration Debug
+
+      - name: Upload build artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-output
+          path: |
+            **/bin/
+            **/obj/
+
   tests:
+    needs: build
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        group: [ ContactFormValidation, ContactFormSubmission, CartCheckout ]
+        group: [ContactFormValidation, ContactFormSubmission, CartCheckout]
 
     steps:
       - name: Set PLAYWRIGHT_TRACE_PATH for all future steps
@@ -39,6 +74,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
+      - name: Setup .NET SDK
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '9.0.x'
+
       - name: Cache NuGet packages
         uses: actions/cache@v4
         with:
@@ -47,34 +87,19 @@ jobs:
           restore-keys: |
             nuget-${{ runner.os }}-
 
-      - name: Setup .NET SDK
-        uses: actions/setup-dotnet@v4
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
         with:
-          dotnet-version: '9.0.x'
-
-      - name: Restore dependencies
-        run: dotnet restore
-
-      - name: Cache build output
-        uses: actions/cache@v3
-        with:
-          path: |
-            **/bin
-            **/obj
-          key: build-${{ runner.os }}-${{ hashFiles('**/*.csproj') }}
-          restore-keys: |
-            build-${{ runner.os }}-
-
-      - name: Build
-        run: dotnet build
+          name: build-output
+          path: .
 
       - name: Install Playwright Browsers
         run: pwsh TechnicalAssessmentTests/bin/Debug/net9.0/playwright.ps1 install
 
       - name: Run Tests
         run: |
-          make test-group Group=${{matrix.group}}
-          
+          make test-group Group=${{ matrix.group }}
+
       - name: Upload Test Results Artifact
         uses: actions/upload-artifact@v4
         with:
