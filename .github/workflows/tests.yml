@@ -84,12 +84,14 @@ jobs:
           name: build-output
           path: .
 
-      - name: Install Playwright Browsers
-        run: pwsh TechnicalAssessmentTests/bin/Debug/net9.0/playwright.ps1 install
+      - name: Restore .NET tools (Playwright CLI)
+        run: dotnet tool restore
 
+      - name: Install Playwright Browsers
+        run: dotnet tool run playwright install
+        
       - name: Run Tests
-        run: |
-          make test-group Group=${{ matrix.group }}
+        run: make test-group Group=${{ matrix.group }}
 
       - name: Upload Test Results Artifact
         uses: actions/upload-artifact@v4
