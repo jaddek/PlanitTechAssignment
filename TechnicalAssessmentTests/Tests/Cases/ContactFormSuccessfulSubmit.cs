@@ -1,4 +1,4 @@
-﻿using TechnicalAssessmentTests.Pages;
+using TechnicalAssessmentTests.Pages;
 using Xunit.Abstractions;
 
 namespace TechnicalAssessmentTests.Tests.Cases;
