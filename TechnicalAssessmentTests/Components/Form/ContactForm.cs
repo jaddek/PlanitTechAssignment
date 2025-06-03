@@ -1,4 +1,5 @@
 using Microsoft.Playwright;
+using static Microsoft.Playwright.Assertions;
 
 namespace TechnicalAssessmentTests.Components.Form;
 
@@ -15,7 +16,7 @@ public class ContactForm(IPage page, string selector) : FormComponent(page, sele
     private const string EmailInvalidText = "Please enter a valid email";
     private const string MessageRequiredText = "Message is required";
     private const string ForenameRequiredText = "Forename is required";
-
+    
     public ILocator SuccessMessage() =>
         _page.Locator(SuccessAlertSelector);
 

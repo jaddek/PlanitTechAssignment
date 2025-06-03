@@ -1,4 +1,3 @@
-﻿using Microsoft.Playwright;
 using TechnicalAssessmentTests.Pages;
 using Xunit.Abstractions;
 
@@ -10,6 +9,8 @@ namespace TechnicalAssessmentTests.Tests.Cases;
 // 3. Click submit button
 // 4. Validate successful submission message
 // Note: Run this test 5 times to ensure 100% pass rate
+[Collection("Contact Form Submission Tests")]
+[Trait("Group", "ContactFormSubmission")]
 public class ContactFormSuccessfulSubmit(ITestOutputHelper output) : AbstractCase(output)
 {
     [Theory(DisplayName = "Submit contact form successfully with valid input")]
@@ -24,39 +25,10 @@ public class ContactFormSuccessfulSubmit(ITestOutputHelper output) : AbstractCas
         string message
     )
     {
-        var homePage = new HomePage(Page);
+        var homePageScenarioManager = new HomePageAssertScenarioManager(new HomePage(Page));
+        await homePageScenarioManager.GoToAssertContactLinkAvailableAndNavigateToContactPageAsync();
 
-        await homePage.GoToAsync();
-
-        Assert.True(await homePage.MenuComponent.TopLeftMenu.Contact.IsVisibleAsync(),
-            "Contact link should be available");
-        await homePage.MenuComponent.TopLeftMenu.Contact.ClickAsync();
-
-        var contactPage = new ContactPage(Page);
-        var form = contactPage.FormComponent;
-
-        await Expect(form.Forename()).ToBeVisibleAsync();
-        await Expect(form.Email()).ToBeVisibleAsync();
-        await Expect(form.Message()).ToBeVisibleAsync();
-        await Expect(form.Submit()).ToBeVisibleAsync();
-
-
-        await form.Forename().FillAsync(forename);
-        await form.Email().FillAsync(email);
-        await form.Message().FillAsync(message);
-
-        await contactPage.FormComponent.Submit().ClickAsync();
-
-        /*
-            Timeout should be set up to 18999ms
-
-            var rt = ( Math.floor(Math.random()*1001) * Math.floor(Math.random()*10) + 1000);
-            if(rt % 2) {
-                rt += 9000;
-            }
-            popup.wait('Sending Feedback',$scope,(rt/1000));
-         */
-        await Expect(form.SuccessMessage())
-            .ToBeVisibleAsync(new LocatorAssertionsToBeVisibleOptions { Timeout = 19000 });
+        var contactPageScenarioManager = new ContactPageAssertScenarioManager(new ContactPage(Page));
+        await contactPageScenarioManager.ValidateFormSuccessSubmitAsync(forename, email, message);
     }
 }

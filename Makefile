@@ -12,6 +12,7 @@ help:
 	@echo "  test                    - Run all tests, headless, no build, output TRX logger"
 	@echo "  test-local              - Run all tests, headless off, no build, output TRX logger"
 	@echo "  test-filter             - Run filtered tests (use FILTER variable), no build, TRX logger"
+	@echo "  test-group              - Run filtered tests (use GROUP variable), no build, TRX logger"
 	@echo "  test-debug              - Run tests with diagnostics, no build, no restore"
 	@echo "  clean                   - Clean the project"
 	@echo "  run                     - Run install-playwright, restore, build, and test"
@@ -27,6 +28,9 @@ build:
 
 test:
 	$(DOTNET) test $(TEST_PROJECT) --no-build --logger trx;LogFileName=TestResults/test-results.trx;
+
+test-group:
+	$(DOTNET) test $(TEST_PROJECT) --filter "Group=$(Group)"  --no-build --logger trx;LogFileName=TestResults/test-results.trx;
 
 report:
 	$(DOTNET) tool run reportgenerator -- \

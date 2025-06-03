@@ -5,23 +5,23 @@ namespace TechnicalAssessmentTests.Components.Collection;
 
 public class StockItemsCollection(IPage page) : AbstractComponent
 {
-    private const string ItemsSelector = ".products";
-    private const string SingleItemSelector = ".product";
-    private const string SingleItemTitleSelector = ".product-title";
-    private const string SingleItemPriceSelector = ".product-price";
-    private const string SingleSuccessButtonSelector = "a.btn-success";
+    public const string CollectionSelector = ".products";
+    public const string SingleItemSelector = ".product";
+    public const string SingleItemTitleSelector = ".product-title";
+    public const string SingleItemPriceSelector = ".product-price";
+    public const string SingleSuccessButtonSelector = "a.btn-success";
     private const string CurrencySign = "$";
 
-    public override ILocator Node { get; } = page.Locator(ItemsSelector);
-
+    public readonly ILocator Collection = page.Locator(CollectionSelector);
+    public override ILocator Node { get; } = page.Locator(SingleItemSelector);
+    
     public async Task AddToCartAsync(Dictionary<string, Item> shoppingList)
     {
-        var itemsOnShelf = Node.Locator(SingleItemSelector);
-        var count = await itemsOnShelf.CountAsync();
+        var count = await Node.CountAsync();
 
         for (var i = 0; i < count; i++)
         {
-            var itemOnShelf = itemsOnShelf.Nth(i);
+            var itemOnShelf = Node.Nth(i);
 
             var title = await itemOnShelf.Locator(SingleItemTitleSelector).InnerTextAsync();
 
